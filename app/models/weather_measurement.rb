@@ -1,0 +1,2 @@
+class WeatherMeasurement < ApplicationRecord
+end
