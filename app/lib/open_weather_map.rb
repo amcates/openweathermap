@@ -14,6 +14,7 @@ class OpenWeatherMap
   def initialize(url=ENV.fetch('API_ENDPOINT'), api_key=ENV.fetch('API_KEY'))
     @url = url
     @api_key = api_key
+    @data = nil
   end
 
   def fetch(zip_code)
@@ -30,23 +31,33 @@ class OpenWeatherMap
   end
 
   def extract_data
-    # weather contains multiple entries with main data (haze, smoke)
-    weather = self.data["weather"]
+    if self.data
+      begin
+        # weather contains multiple entries with main data (haze, smoke)
+        weather = self.data["weather"]
 
-    # main contains temp, pressure, humidity
-    main = self.data["main"]
+        # main contains temp, pressure, humidity
+        main = self.data["main"]
 
-    # wind (speed, deg)
-    wind = self.data["wind"]
+        # wind (speed, deg)
+        wind = self.data["wind"]
 
-    self.conditions = weather.map{|x| x["main"]}.join(", ")
-    self.pressure = main["pressure"]
-    self.temp = main["temp"]
-    self.wind_speed = wind["speed"]
-    self.wind_degrees = wind["deg"]
-    self.humidity = main["humidity"]
+        self.conditions = weather.map{|x| x["main"]}.join(", ")
+        self.pressure = main["pressure"]
+        self.temp = main["temp"]
+        self.wind_speed = wind["speed"]
+        self.wind_degrees = wind["deg"]
+        self.humidity = main["humidity"]
 
-    self.data_collected_at = self.data["dt"]
+        self.data_collected_at = self.data["dt"]
+      rescue
+        message = "An error occured with the OpenWeatherMapAPI, data returned: #{self.data}, for zip code: #{self.zip_code}"
+        puts message
+        self.conditions = message
+      end
+    else
+      self.conditions = "Data doesn't exist or could not be provided by the OpenWeatherMap API"
+    end
   end
 
 end
